@@ -1,0 +1,9 @@
+<div><%=flash[:notice]%></div>
+<h1>Загрузка файла:</h1>
+<% form_tag ({:action => 'create'}, :multipart => true) do %>
+<p><label for="upload_file">Выберите файл</label> :
+<%= file_field 'upload', 'datafile' %></p>
+<%= submit_tag "Upload" %>
+<% end %>
+
+<%=link_to 'Back', :controller => "users", :action => "index"%>

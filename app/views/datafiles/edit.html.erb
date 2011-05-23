@@ -1,0 +1,51 @@
+<div>
+<%if flash[:notice] != ""%>
+<div class="flashn" style="margin-left: 330px;"><%=flash[:notice]%></div>
+<%end%>
+ Files list:
+<p> Перегляд та редагування списку файлів користувача:</p>
+<p>Сортування за:</p>
+<ol>
+  <li>
+    <%= sort_show_url(params[:action],"Типом",'file_type')-%>
+  </li>
+  <li>
+    <%= sort_show_url(params[:action],'Розміром','file_size') -%>
+  </li>
+  <li>
+    <%= sort_show_url(params[:action],'Назвою','file_name') -%>
+  </li>
+  <li>можливість видалити файл</li>
+  <li>можливість відмітити як загальнодоступний</li>
+</ol>
+</div>
+<%= form_tag :action =>'change', :id => session[:id]  %>
+    <div class="colls" >
+        <div class="header"> File Name &nbsp </div>
+        <div class="header field"> File Type &nbsp </div>
+        <div class="header field ffield"> File Size &nbsp </div>
+        <div class="header field ffield" > Share change to &nbsp</div>
+        <div class="header field ffield" id="delcol"> Delete  &nbsp</div>
+    </div>
+    <div style="clear: both;height:0px;"> &nbsp </div>
+
+    <% @fileslist.each do |sfile| %>
+     <div class="colls">
+          <div class="header"><%= sfile.file_name -%></div>
+          <div class="header field" ><%= sfile.file_type -%></div>
+          <div class="header field ffield" ><%= sfile.file_size -%></div>
+          <div class="header field ffield" ><%= opposite_share(sfile.file_share) -%>
+            <%= check_box_tag 'access_id[]', sfile.id -%>
+          </div>
+          <div class="header field ffield" id="delcol" >
+            <%= check_box_tag 'deleteFiles[]', sfile.id -%>
+          </div>
+     </div>
+    <%end-%>
+<div class="bottomt">&nbsp;</div>
+<%= submit_tag 'Submit' -%>
+<div style="clear: both;height:20px;">&nbsp;</div>
+
+<div><%=link_to 'Back', :controller => "users", :action => "index"%></div>
+
+
