@@ -7,7 +7,10 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :users
 
   map.resource :session
-  map.resources :datafiles
+
+  map.resources :users do |user|
+    user.resources :datafiles, :collection => {:change => :any, :allUsers => :any, :showOther => :any}
+  end
 
   # The priority is based upon order of creation: first created -> highest priority.
 

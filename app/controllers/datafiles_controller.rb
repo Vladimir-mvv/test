@@ -1,35 +1,59 @@
 class DatafilesController < ApplicationController
+ 
+  before_filter :require_authentication, :only=>[:index,:show,:show_all,:show_public]
+
   def new
-    render :controller => "datafiles", :action => "new"
+    @user = User.find(params[:user_id])
   end
+  
   def create
-    @target_file = Datafile.save(params[:upload],session[:id])
-    if @target_file
+    @user = User.find(params[:user_id])
+
+      name =  params[:upload]['datafile'].original_filename
+      file_ext = File.extname(name)
+      arr_types = Array['.doc','.rtf','.ppt','.pps']
+
+    if (arr_types.include?(file_ext))
+      directory = "public/data"
+      fpath = File.join(directory, name)
+      ftype =  params[:upload]['datafile'].content_type
+      fsize =  params[:upload]['datafile'].size
+      begin
+        find_fl = @user.datafiles.find_by_file_name(name)
+        find_fl.update_attributes(:file_name => name,:file_path =>fpath,:file_type =>ftype,:file_size =>fsize,:file_share =>false)
+      rescue
+        @user.datafiles << Datafile.new(:file_name => name,:file_path =>fpath,:file_type =>ftype,:file_size =>fsize,:file_share =>false)
+      end
+      File.open(fpath, "wb") { |f| f.write(params[:upload]['datafile'].read) }
       flash[:notice] = "Файл загружен"
     else
       flash[:notice] = "Файл не загружен"
     end
-    render :controller => "datafiles", :action => "new"
+    redirect_to new_user_datafile_path(@user)
   end
 
-  def edit
+  def index
+    @user = User.find(params[:user_id])
     case params[:ffield]
     when 'file_type','file_size','file_name'
-      @fileslist = Datafile.find_all_by_user_id(session[:id], :order => "#{params[:ffield]} #{params[:order]}")
+      @fileslist = @user.datafiles.find(:all, :order => "#{params[:ffield]} #{params[:order]}")
+#      @fileslist = Datafile.find_all_by_user_id(session[:id], :order => "#{params[:ffield]} #{params[:order]}")
     else
-      @fileslist = Datafile.find_all_by_user_id(session[:id], :order => "id asc")
+      @fileslist = @user.datafiles.find(:all, :order => "id asc")
+#      @fileslist = Datafile.find_all_by_user_id(session[:id], :order => "id asc")
     end
-    render :controller => "datafiles", :action => "edit"
+    render :action => "index"
   end
 
   def change
     if request.post?
+      @user = User.find(params[:user_id])
       access_ids = params[:access_id].collect {|id| id.to_i} if params[:access_id]
       delete_ids = params[:deleteFiles].collect {|id| id.to_i} if params[:deleteFiles]
       if access_ids
         flash[:notice] = "Files successfully updated"
         access_ids.each do |id|
-          sf = Datafile.find_by_id_and_user_id(id,session[:id])
+          sf = @user.datafiles.find(id)
           if sf.file_share
             sf.file_share = false
           else
@@ -46,27 +70,29 @@ class DatafilesController < ApplicationController
       flash[:notice] = ""  if !access_ids && !delete_ids
 
     end
-    redirect_to :controller => "datafiles", :action => "edit", :id => session[:id]
+    redirect_to user_datafiles_url(@user)
   end
-  def index
+
+  def allUsers
+    @user = User.find(params[:user_id])
     case params[:ffield]
     when 'file_type','file_size','file_name'
       @fileslist = Datafile.find(:all, :order => "#{params[:ffield]} #{params[:order]}")
     else
       @fileslist = Datafile.find(:all, :order => "user_id asc")
     end
-    render :controller => "datafiles", :action => "index"
+    render :action => "allUsers"
   end
  
-  def show
-    
+  def showOther
+    @user = User.find(params[:user_id])
     case params[:ffield]
     when 'file_type','file_size','file_name'
-      @fileslist = Datafile.find(:all, :conditions =>["file_share = ? AND user_id <> ?", true, session[:id]], :order => "#{params[:ffield]} #{params[:order]}")
+      @fileslist = Datafile.find(:all, :conditions =>["file_share = ? AND user_id <> ?", true, params[:user_id]], :order => "#{params[:ffield]} #{params[:order]}")
     else
-      @fileslist = Datafile.find(:all, :conditions =>["file_share = ? AND user_id <> ?", true, session[:id]], :order => "user_id asc")
+      @fileslist = Datafile.find(:all, :conditions =>["file_share = ? AND user_id <> ?", true, params[:user_id]], :order => "user_id asc")
     end
-    render :controller => "datafiles", :action => "show"
+    render :action => "showOther"
 
   end
 end
