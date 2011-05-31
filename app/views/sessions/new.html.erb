@@ -14,7 +14,7 @@
 
 <p><%= submit_tag 'Log in' %></p>
 <% end -%>
-<%=link_to 'Registration', :controller => "users", :action => "new" %>
+<%=link_to 'Registration', register_url %>
 <%if @user%>
   <%=flash[:notice]%>
 <%end-%>

@@ -1,6 +1,6 @@
 class DatafilesController < ApplicationController
  
-  before_filter :require_authentication, :only=>[:index,:show,:show_all,:show_public]
+  before_filter :require_authentication, :only=>[:new, :create, :index, :change, :showOther,:allUsers]
 
   def new
     @user = User.find(params[:user_id])
